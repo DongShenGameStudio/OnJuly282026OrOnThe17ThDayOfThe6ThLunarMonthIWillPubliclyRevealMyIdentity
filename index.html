@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>我将会在2026年7月28日公开我的身份</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{
+    --bg: url(https://bing.img.run/1920x1080.php);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    background:#000;
+    color:#fff;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif;
+    background-image:var(--bg);
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    transition:background-image 1.5s ease-in-out;
+    position: relative;
+  }
+  /* 更浅的遮罩，确保背景图片可见 */
+  body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.1);
+    z-index: -1;
+  }
+  #top{
+    position:absolute;
+    top:1.2rem;
+    text-align:center;
+    text-shadow:0 0 10px rgba(0,0,0,.8);
+    z-index: 1;
+  }
+  #top h1{font-size:1.6rem;margin-bottom:.3rem;}
+  #top p{font-size:1.1rem;}
+  #countdown{
+    font-size:3.5rem;
+    font-weight:700;
+    text-shadow:0 0 15px rgba(0,0,0,.9);
+    z-index: 1;
+  }
+  #countdown small{font-size:1.4rem;font-weight:400;}
+  #audio-control {
+    position: absolute;
+    bottom: 1.2rem;
+    right: 1.2rem;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    z-index: 1;
+  }
+  #audio-control:hover {
+    background: rgba(0, 0, 0, 0.7);
+  }
+  @media(max-width:600px){
+    #countdown{font-size:2.4rem;}
+    #top h1{font-size:1.3rem;}
+    #audio-control {
+      bottom: 1rem;
+      right: 1rem;
+    }
+  }
+</style>
+</head>
+<body>
+<div id="top">
+  <h1 id="today"></h1>
+  <p id="festival"></p>
+</div>
+<div id="countdown">
+  <span id="d">--</span> 天
+  <small id="hms">--:--:--</small>
+</div>
+<button id="audio-control">🔊</button>
+
+<audio id="bg-music" loop>
+  <source src="djsjshwjgbwdsf.mp3" type="audio/mpeg">
+  您的浏览器不支持音频元素。
+</audio>
+
+<script>
+/* ====== 北京时间 ====== */
+function beijingNow() {
+  return new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Shanghai" }));
+}
+function pad(n) { return n < 10 ? '0' + n : n; }
+
+/* ====== 倒计时 ====== */
+const target = new Date('2026-07-28T00:00:00+08:00');
+function tick() {
+  const now = beijingNow();
+  const diff = target - now;
+  if (diff <= 0) { 
+    document.getElementById('countdown').innerHTML = '<span style="font-size: 2.5rem;">🎉 已到达！</span>'; 
+    return; 
+  }
+  const d = Math.floor(diff / 864e5);
+  const h = Math.floor(diff / 36e5) % 24;
+  const m = Math.floor(diff / 6e4) % 60;
+  const s = Math.floor(diff / 1e3) % 60;
+  document.getElementById('d').textContent = d;
+  document.getElementById('hms').textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
+  document.title = `${d} 天 | 倒计时`;
+}
+tick(); 
+setInterval(tick, 1000);
+
+/* ====== 日期 & 农历 ====== */
+const week = '日一二三四五六';
+function loadFest() {
+  const now = beijingNow();
+  const y = now.getFullYear(), m = now.getMonth() + 1, d = now.getDate();
+  document.getElementById('today').textContent = `${y}年${m}月${d}日  星期${week[now.getDay()]}`;
+  
+  // 显示农历
+  const lunarInfo = getLunar(y, m, d);
+  document.getElementById('festival').textContent = `农历 ${lunarInfo.month}月${lunarInfo.day}`;
+}
+
+/* ====== 背景图切换 - 使用必应每日壁纸 ====== */
+function setBg() {
+  // 使用必应每日壁纸API
+  const bingUrls = [
+    'https://bing.img.run/1920x1080.php',
+    'https://bing.img.run/uhd.php',
+    'https://bing.img.run/1366x768.php'
+  ];
+  
+  // 随机选择一个必应壁纸URL
+  const randomBingUrl = bingUrls[Math.floor(Math.random() * bingUrls.length)];
+  
+  // 添加时间戳防止缓存
+  const urlWithTimestamp = `${randomBingUrl}?t=${Date.now()}`;
+  
+  const img = new Image();
+  img.onload = function() {
+    document.documentElement.style.setProperty('--bg', `url(${urlWithTimestamp})`);
+    console.log('必应壁纸加载成功:', urlWithTimestamp);
+  };
+  img.onerror = function() {
+    console.log('必应壁纸加载失败，使用备用图片');
+    // 如果必应壁纸加载失败，使用备用图片
+    const fallbackUrl = `https://picsum.photos/1920/1080?random=${Date.now()}`;
+    document.documentElement.style.setProperty('--bg', `url(${fallbackUrl})`);
+  };
+  img.src = urlWithTimestamp;
+}
+
+/* ====== 农历计算 - 使用更准确的方法 ====== */
+function getLunar(y, m, d) {
+  // 农历月份和日期名称
+  const lunarMonths = ['正', '二', '三', '四', '五', '六', '七', '八', '九', '十', '冬', '腊'];
+  const lunarDays = ['初一', '初二', '初三', '初四', '初五', '初六', '初七', '初八', '初九', '初十',
+    '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十',
+    '廿一', '廿二', '廿三', '廿四', '廿五', '廿六', '廿七', '廿八', '廿九', '三十'];
+  
+  // 已知的公历-农历对照表（2025年部分日期）
+  const lunarCalendar2025 = {
+    '2025-01-01': { month: '腊', day: '初二' },
+    '2025-01-29': { month: '正', day: '初一' }, // 春节
+    '2025-02-27': { month: '正', day: '廿九' },
+    '2025-02-28': { month: '二', day: '初一' },
+    '2025-03-29': { month: '二', day: '三十' },
+    '2025-03-30': { month: '三', day: '初一' },
+    '2025-04-28': { month: '四', day: '初一' },
+    '2025-05-27': { month: '五', day: '初一' },
+    '2025-06-26': { month: '六', day: '初一' },
+    '2025-07-25': { month: '七', day: '初一' },
+    '2025-08-23': { month: '八', day: '初一' },
+    '2025-09-22': { month: '九', day: '初一' },
+    '2025-10-02': { month: '九', day: '十一' }, // 今天的农历日期
+    '2025-10-21': { month: '十', day: '初一' },
+    '2025-11-20': { month: '冬', day: '初一' },
+    '2025-12-19': { month: '腊', day: '初一' }
+  };
+  
+  // 创建日期字符串用于查找
+  const dateStr = `${y}-${pad(m)}-${pad(d)}`;
+  
+  // 如果在对照表中找到，直接返回
+  if (lunarCalendar2025[dateStr]) {
+    return lunarCalendar2025[dateStr];
+  }
+  
+  // 如果不在对照表中，使用近似计算
+  // 查找最近的已知农历日期
+  const knownDates = Object.keys(lunarCalendar2025);
+  let closestDate = null;
+  let minDiff = Infinity;
+  
+  for (const knownDate of knownDates) {
+    const knownDateObj = new Date(knownDate);
+    const currentDateObj = new Date(y, m-1, d);
+    const diff = Math.abs(currentDateObj - knownDateObj);
+    
+    if (diff < minDiff) {
+      minDiff = diff;
+      closestDate = knownDate;
+    }
+  }
+  
+  if (closestDate) {
+    const baseLunar = lunarCalendar2025[closestDate];
+    const baseDate = new Date(closestDate);
+    const currentDate = new Date(y, m-1, d);
+    const dayDiff = Math.floor((currentDate - baseDate) / (1000 * 60 * 60 * 24));
+    
+    // 计算农历日期
+    let lunarDayIndex = lunarDays.indexOf(baseLunar.day) + dayDiff;
+    let lunarMonthIndex = lunarMonths.indexOf(baseLunar.month);
+    
+    // 处理月份和日期的进位
+    while (lunarDayIndex >= lunarDays.length) {
+      lunarDayIndex -= lunarDays.length;
+      lunarMonthIndex = (lunarMonthIndex + 1) % 12;
+    }
+    
+    while (lunarDayIndex < 0) {
+      lunarDayIndex += lunarDays.length;
+      lunarMonthIndex = (lunarMonthIndex - 1 + 12) % 12;
+    }
+    
+    return {
+      month: lunarMonths[lunarMonthIndex],
+      day: lunarDays[lunarDayIndex]
+    };
+  }
+  
+  // 如果找不到任何已知日期，使用默认值
+  return {
+    month: lunarMonths[(m + 1) % 12],
+    day: lunarDays[d % 30]
+  };
+}
+
+/* ====== 音频播放功能 ====== */
+function initAudio() {
+  const audio = document.getElementById('bg-music');
+  const audioControl = document.getElementById('audio-control');
+  
+  // 从本地存储获取保存的播放进度
+  const savedTime = localStorage.getItem('audioPlaybackTime');
+  const savedVolume = localStorage.getItem('audioVolume');
+  const savedMuted = localStorage.getItem('audioMuted');
+  
+  // 设置音量
+  if (savedVolume !== null) {
+    audio.volume = parseFloat(savedVolume);
+  } else {
+    audio.volume = 0.5; // 默认音量
+  }
+  
+  // 设置静音状态
+  if (savedMuted !== null) {
+    audio.muted = savedMuted === 'true';
+    updateAudioControlIcon(audio.muted);
+  }
+  
+  // 尝试自动播放
+  const playAudio = () => {
+    if (savedTime !== null) {
+      audio.currentTime = parseFloat(savedTime);
+    }
+    
+    audio.play().then(() => {
+      console.log('音频自动播放成功');
+    }).catch(error => {
+      console.log('音频自动播放失败，需要用户交互:', error);
+      // 如果自动播放失败，显示提示
+      audioControl.textContent = '▶️';
+      audioControl.title = '点击播放音频';
+    });
+  };
+  
+  // 添加点击事件监听器
+  audioControl.addEventListener('click', () => {
+    if (audio.paused) {
+      audio.play();
+      updateAudioControlIcon(audio.muted);
+    } else {
+      audio.pause();
+      audioControl.textContent = '▶️';
+    }
+  });
+  
+  // 添加音量控制（通过滚轮）
+  audioControl.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    audio.volume = Math.min(1, Math.max(0, audio.volume + delta));
+    localStorage.setItem('audioVolume', audio.volume.toString());
+    
+    // 短暂显示音量
+    audioControl.title = `音量: ${Math.round(audio.volume * 100)}%`;
+    setTimeout(() => {
+      audioControl.title = audio.muted ? '取消静音' : '静音';
+    }, 2000);
+  });
+  
+  // 双击切换静音
+  audioControl.addEventListener('dblclick', (e) => {
+    e.preventDefault();
+    audio.muted = !audio.muted;
+    localStorage.setItem('audioMuted', audio.muted.toString());
+    updateAudioControlIcon(audio.muted);
+  });
+  
+  // 定期保存播放进度
+  setInterval(() => {
+    if (!audio.paused) {
+      localStorage.setItem('audioPlaybackTime', audio.currentTime.toString());
+    }
+  }, 1000);
+  
+  // 更新音频控制图标
+  function updateAudioControlIcon(muted) {
+    if (muted) {
+      audioControl.textContent = '🔇';
+      audioControl.title = '取消静音';
+    } else {
+      audioControl.textContent = '🔊';
+      audioControl.title = '静音';
+    }
+  }
+  
+  // 页面加载后尝试自动播放
+  window.addEventListener('load', playAudio);
+  
+  // 用户与页面交互后尝试播放（解决浏览器自动播放限制）
+  document.addEventListener('click', () => {
+    if (audio.paused) {
+      playAudio();
+    }
+  }, { once: true });
+}
+
+// 初始化
+loadFest();
+setBg(); // 立即设置背景
+initAudio(); // 初始化音频
+
+// 30分钟自动更换背景
+setInterval(setBg, 30 * 60 * 1000);
+
+// 添加一个备用背景加载机制，防止图片加载失败
+setTimeout(setBg, 5000);
+</script>
+</body>
+</html>
